@@ -4,13 +4,13 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Redirect to Google Meet</title>
     <style>
-      @import url(https://fonts.googleapis.com/css?family=Open+Sans:300);
+      /* @import url(https://fonts.googleapis.com/css?family=Open+Sans:300); */
       :root {
-        --white: #f5f5f7;
+        /* --white: #f5f5f7; */
         --white: #1d1d1f;
-        --black: #1d1d1f;
+        /* --black: #1d1d1f; */
         --black: #f5f5f7;
       }
       body {
@@ -266,9 +266,11 @@
       .text {
         /* position: absolute; */
         /* font-size: max(100%, 0.75rem); */
-        font-size: 0.75rem;
+        font-family: "Open Sans", sans-serif;
+        font-size: 1.25rem;
         letter-spacing: 0.2em;
         color: var(--white);
+        font-weight: 800;
       }
 
       .animated-span {
@@ -276,3 +278,68 @@
         opacity: 0;
       }
     </style>
+  </head>
+  <body>
+    <div class="body">
+      <span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+      </span>
+      <div class="base">
+        <span></span>
+        <div class="face"></div>
+      </div>
+    </div>
+    <div class="longfazers">
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <h1>
+      <div class="wrapper">
+        <div class="text">
+          Redirecting&nbsp;To&nbsp;Google&nbsp;Meets&nbsp;....
+        </div>
+      </div>
+    </h1>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.0/anime.min.js"></script>
+
+    <script>
+      $(".text").each(function () {
+        var spliter = $(this).text().split("");
+        $(this).empty();
+        for (var i = 0; i < spliter.length; i++) {
+          var chars = spliter[i];
+          $(this).append("<span class='animated-span'>" + chars + "</span>");
+        }
+      });
+
+      // Animate <span>
+
+      anime({
+        targets: ".text .animated-span", // Modified selector to target spans with the class "animated-span"
+        translateX: [-100, 0],
+        translateY: [50, 0],
+        scale: [0, 1],
+        rotate: [45, 0],
+        opacity: [0, 1],
+        duration: 1000,
+        easing: "easeOutElastic",
+        delay: anime.stagger(50),
+      });
+    </script>
+
+    <script type="text/javascript">
+      window.onload = function () {
+        setTimeout(function () {
+          window.location.href = "https://meet.google.com/vws-jsng-bgq";
+        }, 2500);
+      };
+    </script>
+  </body>
+</html>
