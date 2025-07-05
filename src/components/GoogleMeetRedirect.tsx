@@ -1,62 +1,54 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import LoaderAnimation from './LoaderAnimation';
+import { GOOGLE_MEET_URL } from '../constants/env';
+import { LOADER_DURATION } from '../constants/loader';
+import { useRedirect } from '../hooks/useRedirect';
 
-const GOOGLE_MEET_URL = import.meta.env.VITE_GOOGLE_MEET_URL as string;
-
-const redirectText = 'Redirecting To Google Meets ....';
+import purna from '../assets/hero.webp';
+import meets from '../assets/meets.svg';
+import Gradient from './ui/Gradient';
 
 const GoogleMeetRedirect: React.FC = () => {
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      window.location.href = GOOGLE_MEET_URL;
-    }, 2500);
-    return () => clearTimeout(timeout);
-  }, []);
+  useRedirect(GOOGLE_MEET_URL, LOADER_DURATION);
 
   return (
-    <main className="relative flex h-screen w-full items-center justify-center overflow-hidden bg-neutral-100 select-none">
-      <LoaderAnimation />
-      <div className="absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center">
-        <h1 className="mt-16 flex items-center justify-center text-xl font-bold tracking-widest text-neutral-900 uppercase sm:text-2xl">
-          <span className="inline-block">
-            {redirectText.split('').map((char, i) => (
-              <span
-                key={i}
-                className="animate-fade-in inline-block opacity-0"
-                style={{ animationDelay: `${i * 0.05}s` }}
-              >
-                {char === ' ' ? '\u00A0' : char}
-              </span>
-            ))}
-          </span>
+    <main className="flex h-svh w-full flex-col items-center justify-start overflow-hidden bg-white py-12">
+      <div className="container flex max-w-4xl flex-col items-center justify-start gap-2 text-center text-blue-50">
+        <div className="relative inline-flex items-center justify-center gap-2 rounded-full border border-gray-600/30 px-4 py-1 text-xs font-medium tracking-wide text-gray-700 shadow-sm backdrop-blur sm:text-sm md:text-sm">
+          <div className="animate-progress-stripes absolute inset-0 h-full w-full bg-[linear-gradient(135deg,rgba(255,255,255,0.25)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.25)_50%,rgba(255,255,255,0.25)_75%,transparent_75%,transparent)] bg-[length:32px_32px]" />
+          <img
+            src={meets}
+            alt="Google Meet Icon"
+            className="size-4 object-contain"
+          />
+          <span>Redirecting to Google Meet</span>
+        </div>
+        <h1 className="mt-4 text-2xl leading-snug font-bold capitalize mix-blend-difference md:text-4xl md:leading-snug lg:text-5xl lg:leading-snug">
+          Welcome to Meet with Purna!
         </h1>
+        <p className="font-body max-w-xl text-sm opacity-80 mix-blend-difference sm:text-sm md:text-base md:opacity-60">
+          You're about to join a Google Meet with Purna. Please get comfortable
+          and we'll take you there in just a moment. Grab your coffee, fix your
+          hair, and get ready for some virtual magic.
+        </p>
       </div>
-      {/* Tailwind custom keyframes for animation */}
-      <style>{`
-        @keyframes speeder {
-          0% { transform: translate(2px, 1px) rotate(0deg); }
-          10% { transform: translate(-1px, -3px) rotate(-1deg); }
-          20% { transform: translate(-2px, 0px) rotate(1deg); }
-          30% { transform: translate(1px, 2px) rotate(0deg); }
-          40% { transform: translate(1px, -1px) rotate(1deg); }
-          50% { transform: translate(-1px, 3px) rotate(-1deg); }
-          60% { transform: translate(-1px, 1px) rotate(0deg); }
-          70% { transform: translate(3px, 1px) rotate(-1deg); }
-          80% { transform: translate(-2px, -1px) rotate(1deg); }
-          90% { transform: translate(2px, 1px) rotate(0deg); }
-          100% { transform: translate(1px, -2px) rotate(-1deg); }
-        }
-        @keyframes fazer1 { 0% { left: 0; } 100% { left: -80px; opacity: 0; } }
-        @keyframes fazer2 { 0% { left: 0; } 100% { left: -100px; opacity: 0; } }
-        @keyframes fazer3 { 0% { left: 0; } 100% { left: -50px; opacity: 0; } }
-        @keyframes fazer4 { 0% { left: 0; } 100% { left: -150px; opacity: 0; } }
-        @keyframes lf { 0% { left: 200%; } 100% { left: -200%; opacity: 0; } }
-        @keyframes lf2 { 0% { left: 200%; } 100% { left: -200%; opacity: 0; } }
-        @keyframes lf3 { 0% { left: 200%; } 100% { left: -100%; opacity: 0; } }
-        @keyframes lf4 { 0% { left: 200%; } 100% { left: -100%; opacity: 0; } }
-        @keyframes fade-in { to { opacity: 1; transform: none; } }
-        .animate-fade-in { animation: fade-in 1s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
-      `}</style>
+
+      {/* <img
+        src={purna}
+        alt="Purna's Meeting Portal"
+        className="absolute inset-0 h-full w-auto mx-auto object-cover opacity-10 blur-sm brightness-50"
+      /> */}
+
+      <LoaderAnimation />
+      <div className="absolute inset-0 z-0 flex items-center justify-center md:-z-10">
+        <img
+          src={purna}
+          alt="Purna's Meeting Portal"
+          className="mx-auto mt-auto h-96 w-auto object-cover opacity-100 mix-blend-color md:h-[75%]"
+        />
+      </div>
+
+      <Gradient />
     </main>
   );
 };
