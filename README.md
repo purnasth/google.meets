@@ -1,5 +1,7 @@
-# Meet with Purna
+# Meet with Purna v2.0.1
 ![Meet with Purna Banner](public/meets.png)
+
+![Screenshot 2025-09-18 at 8 38 27 PM](https://github.com/user-attachments/assets/93a3dab5-dbb0-4086-8e43-8d6fbc30ef14)
 
 Welcome to **[Meet with Purna](https://meets.purnashrestha.com.np//)** — a delightful, one-click portal to instantly join a **Google Meet** with **[Purna Shrestha](https://purnashrestha.com.np/)**!
 
