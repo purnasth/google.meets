@@ -25,6 +25,10 @@
   --animate-rise: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-curtain: curtain 0.9s cubic-bezier(0.65, 0, 0.35, 1) both;
   --animate-settle: settle 1.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-mirror: mirror-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-mirror-out: mirror-out 0.45s ease-in both;
+  --animate-pip-in: pip-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-pip-out: pip-out 0.45s ease-in both;
 
   @keyframes google-gradient-move {
     0% {
@@ -56,6 +60,42 @@
   @keyframes grid-move {
     to {
       background-position: 0 56px;
+    }
+  }
+
+  @keyframes mirror-in {
+    from {
+      opacity: 0;
+      transform: scale(1.15);
+      filter: blur(12px);
+    }
+  }
+
+  @keyframes pip-in {
+    from {
+      opacity: 0;
+      transform: scale(var(--pip-from));
+    }
+    25% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes mirror-out {
+    to {
+      opacity: 0;
+      transform: scale(1.15);
+      filter: blur(12px);
+    }
+  }
+
+  @keyframes pip-out {
+    75% {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+      transform: scale(var(--pip-from));
     }
   }
 

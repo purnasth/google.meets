@@ -1,5 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { HiArrowRight, HiMicrophone, HiPause, HiPlay } from 'react-icons/hi2';
+import {
+  HiArrowRight,
+  HiMicrophone,
+  HiPause,
+  HiPlay,
+  HiVideoCamera,
+  HiVideoCameraSlash,
+} from 'react-icons/hi2';
 
 import purna from '../assets/purna.jpg';
 import meets from '../assets/meets.svg';
@@ -44,6 +51,8 @@ const corners = [
 ];
 
 const rise = 'motion-safe:animate-rise';
+const fill =
+  'absolute inset-0 size-full object-cover max-sm:aspect-square max-sm:h-auto max-sm:min-h-[60%]';
 const delay = (ms: number) => ({ animationDelay: `${ms}ms` });
 
 const GoogleMeetRedirect: React.FC = () => {
@@ -55,6 +64,47 @@ const GoogleMeetRedirect: React.FC = () => {
   const [launching, setLaunching] = useState(false);
   const [now, setNow] = useState(() => new Date());
   const card = useRef<HTMLDivElement>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [camBlocked, setCamBlocked] = useState(false);
+  const [closing, setClosing] = useState(false);
+  const attach = (v: HTMLVideoElement | null) => {
+    if (v && v.srcObject !== stream) v.srcObject = stream;
+  };
+
+  const toggleMirror = async () => {
+    if (closing) return;
+    if (stream) {
+      setClosing(true);
+      const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      setTimeout(
+        () => {
+          setStream(null);
+          setClosing(false);
+        },
+        reduced ? 0 : 450,
+      );
+      return;
+    }
+    if (!paused) togglePause();
+    setCamBlocked(false);
+    try {
+      setStream(
+        await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: 'user',
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+          },
+        }),
+      );
+    } catch {
+      setCamBlocked(true);
+    }
+  };
+
+  useEffect(() => {
+    return () => stream?.getTracks().forEach((t) => t.stop());
+  }, [stream]);
 
   const launch = useCallback(() => {
     setLaunching(true);
@@ -96,6 +146,32 @@ const GoogleMeetRedirect: React.FC = () => {
     window.addEventListener('pointermove', onMove);
     return () => window.removeEventListener('pointermove', onMove);
   }, []);
+
+  const camIcon = stream ? (
+    <HiVideoCamera className="size-3.5" />
+  ) : (
+    <HiVideoCameraSlash className="size-3.5" />
+  );
+  const camButton = (className: string, label = false) => (
+    <button
+      onClick={toggleMirror}
+      aria-pressed={!!stream}
+      aria-label="Camera preview"
+      title={stream ? 'Stop preview' : 'Preview camera'}
+      className={`glass flex shrink-0 items-center gap-2 rounded-full text-sm font-medium transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white active:scale-95 ${stream ? 'bg-white/15' : ''} ${className}`}
+    >
+      {label ? (
+        <>
+          <span className="grid size-7 place-items-center rounded-full bg-white text-neutral-900">
+            {camIcon}
+          </span>
+          {stream ? 'Stop preview' : 'Preview camera'}
+        </>
+      ) : (
+        camIcon
+      )}
+    </button>
+  );
 
   const leaving = launching || (!paused && progress > 0.92);
   const deg = progress * 360;
@@ -160,9 +236,30 @@ const GoogleMeetRedirect: React.FC = () => {
                   <img
                     src={purna}
                     alt="Purna Shrestha"
-                    className="motion-safe:animate-settle absolute inset-0 size-full object-cover object-[center_25%] max-sm:aspect-square max-sm:h-auto max-sm:min-h-[60%] max-sm:object-[center_20%]"
+                    className={`motion-safe:animate-settle object-[center_25%] max-sm:object-[center_20%] ${fill}`}
                     style={delay(200)}
                   />
+                  {stream && (
+                    <div
+                      className={`isolate -scale-x-100 bg-black ${fill} ${closing ? 'motion-safe:animate-mirror-out' : 'motion-safe:animate-mirror'}`}
+                    >
+                      <video
+                        ref={attach}
+                        autoPlay
+                        playsInline
+                        muted
+                        className="absolute inset-0 size-full object-cover brightness-108 contrast-105 saturate-110 sepia-[0.06]"
+                      />
+                      <video
+                        ref={attach}
+                        autoPlay
+                        playsInline
+                        muted
+                        aria-hidden
+                        className="absolute inset-0 size-full object-cover opacity-12 mix-blend-screen blur-md brightness-110"
+                      />
+                    </div>
+                  )}
                   <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(5,6,10,0.9),transparent_50%),radial-gradient(ellipse_at_center,transparent_55%,rgba(5,6,10,0.55))]" />
                   <div className="absolute inset-0 bg-[linear-gradient(to_top,#05060a_42%,rgba(5,6,10,0.75)_58%,transparent_78%)] sm:hidden" />
                   <div className="motion-safe:animate-scan absolute inset-x-0 top-0 h-1/6 bg-[linear-gradient(to_bottom,transparent,rgba(120,180,255,0.18),transparent)]" />
@@ -174,6 +271,21 @@ const GoogleMeetRedirect: React.FC = () => {
                     />
                   ))}
 
+                  {stream && (
+                    <div
+                      className={`glass absolute right-6 bottom-6 w-1/4 origin-bottom-right overflow-hidden rounded-2xl [--pip-from:4] max-sm:top-3 max-sm:right-3 max-sm:bottom-auto max-sm:w-1/4 max-sm:origin-top-right max-sm:[--pip-from:4] ${closing ? 'motion-safe:animate-pip-out' : 'motion-safe:animate-pip-in'}`}
+                    >
+                      <img
+                        src={purna}
+                        alt="Purna Shrestha"
+                        className="aspect-[3/4] w-full object-cover object-[center_25%]"
+                      />
+                      <span className="glass absolute bottom-2 left-2 rounded-full px-2.5 py-1 text-xs font-medium">
+                        Purna
+                      </span>
+                    </div>
+                  )}
+
                   <span
                     className={`glass absolute top-6 left-6 flex items-center gap-2 rounded-full px-3 py-1.5 font-mono text-[0.6rem] tracking-widest uppercase max-sm:top-3 max-sm:left-3 ${rise}`}
                     style={delay(750)}
@@ -184,15 +296,18 @@ const GoogleMeetRedirect: React.FC = () => {
                     </span>
                     Room live
                   </span>
-                  <span
-                    className={`glass absolute bottom-6 left-6 flex items-center gap-2 rounded-full py-1.5 pr-4 pl-1.5 text-sm font-medium max-sm:hidden ${rise}`}
+                  <div
+                    className={`absolute bottom-6 left-6 flex items-center gap-2 max-sm:hidden ${rise}`}
                     style={delay(800)}
                   >
-                    <span className="grid size-7 place-items-center rounded-full bg-white text-neutral-900">
-                      <HiMicrophone className="size-3.5" />
+                    {camButton('py-1.5 pr-4 pl-1.5 whitespace-nowrap', true)}
+                    <span className="glass flex items-center gap-2 rounded-full py-1.5 pr-4 pl-1.5 text-sm font-medium">
+                      <span className="grid size-7 place-items-center rounded-full bg-white text-neutral-900">
+                        <HiMicrophone className="size-3.5" />
+                      </span>
+                      {stream ? 'You' : 'Purna Shrestha'}
                     </span>
-                    Purna Shrestha
-                  </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -245,9 +360,13 @@ const GoogleMeetRedirect: React.FC = () => {
                         : 'Redirecting to Google Meet'}
                     </p>
                     <p className="mt-1.5 text-sm text-white/70">
-                      {paused
-                        ? 'Join whenever you are ready.'
-                        : 'Get comfy, the call opens automatically.'}
+                      {camBlocked
+                        ? "Couldn't open your camera. Allow camera access and try again."
+                        : stream
+                          ? 'Your video stays on this device.'
+                          : paused
+                            ? 'Join whenever you are ready.'
+                            : 'Get comfy, the call opens automatically.'}
                     </p>
                   </div>
                   <p
@@ -275,7 +394,7 @@ const GoogleMeetRedirect: React.FC = () => {
                 <button
                   onClick={launch}
                   title="Join now (Enter)"
-                  className="group flex items-center justify-between gap-3 rounded-full bg-white py-2.5 pr-2.5 pl-6 font-semibold text-black shadow-[0_0_40px_rgba(255,255,255,0.25)] transition hover:shadow-[0_0_60px_rgba(255,255,255,0.45)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white active:scale-95 max-sm:flex-1"
+                  className="group flex items-center justify-between gap-3 rounded-full bg-white py-2.5 pr-2.5 pl-6 font-semibold whitespace-nowrap text-black shadow-[0_0_40px_rgba(255,255,255,0.25)] transition hover:shadow-[0_0_60px_rgba(255,255,255,0.45)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white active:scale-95 max-sm:flex-1"
                 >
                   Join now
                   <span className="grid size-8 place-items-center rounded-full bg-black text-white transition group-hover:translate-x-0.5">
@@ -288,8 +407,11 @@ const GoogleMeetRedirect: React.FC = () => {
                   className="glass flex items-center gap-2 rounded-full px-5 py-3 text-sm font-medium transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white active:scale-95"
                 >
                   {paused ? <HiPlay /> : <HiPause />}
-                  {paused ? 'Resume' : 'Pause'}
+                  <span className="max-sm:sr-only">
+                    {paused ? 'Resume' : 'Pause'}
+                  </span>
                 </button>
+                {camButton('size-11 justify-center sm:hidden')}
               </div>
 
               <div
