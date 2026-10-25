@@ -77,24 +77,53 @@ const GoogleMeetRedirect: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (
-      !matchMedia('(hover: hover) and (prefers-reduced-motion: no-preference)')
-        .matches
-    )
+    const el = card.current;
+    if (!el || !matchMedia('(prefers-reduced-motion: no-preference)').matches)
       return;
-    const onMove = (e: PointerEvent) => {
-      const el = card.current;
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      const x = (e.clientX - r.left) / r.width;
-      const y = (e.clientY - r.top) / r.height;
+    const tilt = (x: number, y: number) => {
+      x = Math.min(1, Math.max(0, x));
+      y = Math.min(1, Math.max(0, y));
       el.style.setProperty('--rx', `${(0.5 - y) * 6}deg`);
       el.style.setProperty('--ry', `${(x - 0.5) * 8}deg`);
       el.style.setProperty('--mx', `${x * 100}%`);
       el.style.setProperty('--my', `${y * 100}%`);
+      el.style.setProperty('--px', `${(x - 0.5) * 2}`);
+      el.style.setProperty('--py', `${(y - 0.5) * 2}`);
     };
-    window.addEventListener('pointermove', onMove);
-    return () => window.removeEventListener('pointermove', onMove);
+
+    if (matchMedia('(hover: hover)').matches) {
+      const onMove = (e: PointerEvent) => {
+        const r = el.getBoundingClientRect();
+        tilt((e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height);
+      };
+      window.addEventListener('pointermove', onMove);
+      return () => window.removeEventListener('pointermove', onMove);
+    }
+
+    let base: number | undefined;
+    const onOrient = (e: DeviceOrientationEvent) => {
+      if (e.beta === null || e.gamma === null) return;
+      base ??= e.beta;
+      tilt(0.5 + e.gamma / 60, 0.5 + (e.beta - base) / 60);
+    };
+    // iOS only delivers orientation events after a permission prompt, which needs a tap.
+    const ask = (e: MouseEvent) => {
+      if ((e.target as Element).closest('button')) return;
+      el.removeEventListener('click', ask);
+      (
+        DeviceOrientationEvent as unknown as {
+          requestPermission?: () => Promise<string>;
+        }
+      )
+        .requestPermission?.()
+        .catch(() => {});
+    };
+    window.addEventListener('deviceorientation', onOrient);
+    el.addEventListener('click', ask);
+    return () => {
+      window.removeEventListener('deviceorientation', onOrient);
+      el.removeEventListener('click', ask);
+    };
   }, []);
 
   const leaving = launching || (!paused && progress > 0.92);
@@ -146,6 +175,21 @@ const GoogleMeetRedirect: React.FC = () => {
               aria-hidden
               className="pointer-events-none absolute inset-0 rounded-[2.5rem] bg-[radial-gradient(500px_circle_at_var(--mx,50%)_var(--my,50%),rgba(255,255,255,0.09),transparent_45%)]"
             />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 rounded-[2.5rem] bg-[linear-gradient(115deg,transparent_30%,#2684FC_40%,#00AC47_47%,#FFBA00_54%,#E94235_61%,transparent_71%)] bg-[length:300%_300%] [background-position:var(--mx,50%)_var(--my,50%)] opacity-10 mix-blend-screen"
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -inset-px z-10 rounded-[2.5rem] p-[2px] [mask:linear-gradient(#000_0_0)_content-box_exclude,linear-gradient(#000_0_0)]"
+              style={{
+                background: `linear-gradient(115deg, transparent 35%, #2684FC 42%, #00AC47 48%, #FFBA00 54%, #E94235 60%, transparent 67%) var(--mx, 50%) var(--my, 50%) / 200% 200%, linear-gradient(160deg, rgb(255 255 255 / 0.35), rgb(255 255 255 / 0.05) 50%, rgb(255 255 255 / 0.2))`,
+              }}
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 z-10 rounded-[2.5rem] bg-[linear-gradient(105deg,transparent_42%,rgb(255_255_255/0.12)_50%,transparent_58%)] bg-[length:250%_100%] [background-position:var(--mx,50%)_0] mix-blend-screen"
+            />
             <div className="relative max-sm:absolute max-sm:inset-3 sm:aspect-[3/2] lg:aspect-[4/5]">
               <div
                 aria-hidden
@@ -160,7 +204,7 @@ const GoogleMeetRedirect: React.FC = () => {
                   <img
                     src={purna}
                     alt="Purna Shrestha"
-                    className="motion-safe:animate-settle absolute inset-0 size-full object-cover object-[center_25%] max-sm:aspect-square max-sm:h-auto max-sm:min-h-[60%] max-sm:object-[center_20%]"
+                    className="motion-safe:animate-settle absolute inset-0 size-full [translate:calc(var(--px,0)*-18px)_calc(var(--py,0)*-18px)] scale-110 object-cover object-[center_25%] transition-[translate] duration-500 ease-out max-sm:aspect-square max-sm:h-auto max-sm:min-h-[60%] max-sm:object-[center_20%]"
                     style={delay(200)}
                   />
                   <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(5,6,10,0.9),transparent_50%),radial-gradient(ellipse_at_center,transparent_55%,rgba(5,6,10,0.55))]" />
@@ -169,13 +213,13 @@ const GoogleMeetRedirect: React.FC = () => {
                   {corners.map((c, i) => (
                     <span
                       key={c}
-                      className={`absolute size-6 border-white/70 max-sm:hidden ${c} ${rise}`}
+                      className={`parallax-8 absolute size-6 border-white/70 max-sm:hidden ${c} ${rise}`}
                       style={delay(650 + i * 40)}
                     />
                   ))}
 
                   <span
-                    className={`glass absolute top-6 left-6 flex items-center gap-2 rounded-full px-3 py-1.5 font-mono text-[0.6rem] tracking-widest uppercase max-sm:top-3 max-sm:left-3 ${rise}`}
+                    className={`glass parallax-8 absolute top-6 left-6 flex items-center gap-2 rounded-full px-3 py-1.5 font-mono text-[0.6rem] tracking-widest uppercase max-sm:top-3 max-sm:left-3 ${rise}`}
                     style={delay(750)}
                   >
                     <span className="relative flex size-1.5">
@@ -185,7 +229,7 @@ const GoogleMeetRedirect: React.FC = () => {
                     Room live
                   </span>
                   <span
-                    className={`glass absolute bottom-6 left-6 flex items-center gap-2 rounded-full py-1.5 pr-4 pl-1.5 text-sm font-medium max-sm:hidden ${rise}`}
+                    className={`glass parallax-8 absolute bottom-6 left-6 flex items-center gap-2 rounded-full py-1.5 pr-4 pl-1.5 text-sm font-medium max-sm:hidden ${rise}`}
                     style={delay(800)}
                   >
                     <span className="grid size-7 place-items-center rounded-full bg-white text-neutral-900">
@@ -197,7 +241,7 @@ const GoogleMeetRedirect: React.FC = () => {
               </div>
             </div>
 
-            <div className="relative flex flex-col justify-center gap-5 p-4 max-sm:gap-4 max-sm:px-5 max-sm:pb-5 sm:p-8 lg:p-10">
+            <div className="parallax-12 relative flex flex-col justify-center gap-5 p-4 max-sm:gap-4 max-sm:px-5 max-sm:pb-5 sm:p-8 lg:p-10">
               <span
                 className={`glass flex w-fit items-center gap-2 rounded-full px-3 py-1.5 font-mono text-[0.65rem] tracking-widest text-white/70 uppercase max-sm:hidden ${rise}`}
                 style={delay(280)}

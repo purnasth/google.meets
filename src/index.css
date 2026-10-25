@@ -92,6 +92,12 @@
   }
 }
 
+@utility parallax-* {
+  translate: calc(var(--px, 0) * --value(integer) * 1px)
+    calc(var(--py, 0) * --value(integer) * 1px);
+  transition: translate 0.5s ease-out;
+}
+
 @utility glass {
   background: linear-gradient(
     135deg,
