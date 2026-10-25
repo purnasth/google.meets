@@ -1,18 +1,14 @@
-/* @import url('https://fonts.cdnfonts.com/css/product-sans'); */
-
 @import 'tailwindcss';
 
 @config "../tailwind.config.js";
 
 @theme {
-  /* Body font */
-  /* --font-body: 'Product Sans', sans-serif; */
-  /* Title font */
-  /* --font-title: sans-serif; */
+  --font-sans: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
   --color-dark: #111111;
   --color-light: #f5f5f5;
-
-  --animate-progress-stripes: progress-stripes 1s linear infinite;
 
   --google-gradient: linear-gradient(
     90deg,
@@ -23,15 +19,12 @@
     #4285f4 100%
   );
   --animate-google-gradient: google-gradient-move 5s linear infinite;
-
-  @keyframes progress-stripes {
-    0% {
-      background-position: 0 0;
-    }
-    100% {
-      background-position: 32px 0;
-    }
-  }
+  --animate-blob: blob 20s ease-in-out infinite alternate;
+  --animate-grid: grid-move 3s linear infinite;
+  --animate-scan: scan 4s ease-in-out infinite;
+  --animate-rise: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-curtain: curtain 0.9s cubic-bezier(0.65, 0, 0.35, 1) both;
+  --animate-settle: settle 1.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 
   @keyframes google-gradient-move {
     0% {
@@ -44,34 +37,92 @@
       background-position: 0% 50%;
     }
   }
+
+  @keyframes blob {
+    0% {
+      transform: translate(0, 0) scale(1);
+      border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    }
+    50% {
+      transform: translate(6vw, 5vh) scale(1.15);
+      border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+    }
+    100% {
+      transform: translate(-5vw, -3vh) scale(0.95);
+      border-radius: 50% 50% 40% 60% / 40% 50% 60% 50%;
+    }
+  }
+
+  @keyframes grid-move {
+    to {
+      background-position: 0 56px;
+    }
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+      filter: blur(12px);
+    }
+  }
+
+  @keyframes curtain {
+    from {
+      clip-path: inset(100% 0 0 0 round 1.75rem);
+    }
+    to {
+      clip-path: inset(0 0 0 0 round 1.75rem);
+    }
+  }
+
+  @keyframes settle {
+    from {
+      transform: scale(1.25);
+    }
+  }
+
+  @keyframes scan {
+    0% {
+      transform: translateY(-100%);
+    }
+    100% {
+      transform: translateY(600%);
+    }
+  }
 }
 
-@layer components {
-  ::selection {
-    @apply bg-dark text-light;
+@utility glass {
+  background: linear-gradient(
+    135deg,
+    rgb(255 255 255 / 0.1),
+    rgb(255 255 255 / 0.02)
+  );
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgb(255 255 255 / 0.12);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.18),
+    inset 0 -1px 0 rgb(255 255 255 / 0.04),
+    0 30px 80px -20px rgb(0 0 0 / 0.6);
+}
+
+@layer base {
+  html,
+  body {
+    background-color: #05060a;
   }
 
-  /* * {
-          scrollbar-width: thin;
-        } */
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+
+  ::selection {
+    @apply bg-white text-black;
+  }
+
   ::-webkit-scrollbar {
     @apply w-0;
-  }
-
-  .scroll::-webkit-scrollbar {
-    @apply bg-light w-1 rounded-full;
-  }
-
-  .scroll::-webkit-scrollbar-thumb {
-    @apply rounded-full bg-orange-300;
-  }
-
-  *,
-  body {
-    @apply font-sans;
-  }
-
-  main {
-    @apply relative z-10 px-4 py-12 sm:py-24 md:px-12 md:py-32 lg:py-36 xl:px-16 xl:py-48;
   }
 }
